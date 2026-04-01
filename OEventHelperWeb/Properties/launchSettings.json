@@ -1,6 +1,6 @@
 {
     "profiles": {
-      "OEventCourseHelper.Wasm": {
+      "OEventHelperWeb": {
         "commandName": "Project",
         "launchBrowser": true,
         "environmentVariables": {
