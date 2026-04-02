@@ -1,35 +1,40 @@
-:root {
-    --mauve-shadow: #483C46;
+:root {    
+    --evergreen: #053225;
+    --shadow-gray: #15111A;
+    --porcelain: #FDFFFC;
     --atomic-tangerine: #F4743B;
-    --forest-green: #2A9134;
-    --floral-white: #FFF8F0;
-    --soft-blush: #FFE8E1;
+    --mint-leaf: #62A87C;
 
-    --header-bg: var(--forest-green);
-    --nav-bg: var(--mauve-shadow);
-    --workspace-bg: var(--floral-white);
+    --header-bg: var(--evergreen);
+    --nav-bg: var(--evergreen);
+    --workspace-bg: var(--porcelain);
+    --accent1: var(--atomic-tangerine);
+    --accent2: var(--mint-leaf);
 
-    --text-primary: black;
-    --text-inverse: white;
+    --link-unvisited: #0000EE;
+    --link-visited: #551ABB;
+    --link-active: #FF0000;
 
-    --structural-border: var(--soft-blush);
+    --text-primary: var(--shadow-gray);
+    --text-inverse: var(--porcelain);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --workspace-bg: var(--mauve-shadow);
-        --nav-bg: var(--mauve-shadow);
-
-        --text-primary: white;
-
-        --structural-border: var(--atomic-tangerine);
+        --workspace-bg: var(--shadow-gray);
+        --text-primary: var(--porcelain);
+        --link-unvisited: var(--accent2);
+        --link-visited: color-mix(in srgb, var(--accent2) 50%, var(--accent1) 50%);
+        --link-active: var(--accent1);
     }
 }
 
 body {
     display: grid;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
     margin: 0;
     height: 100vh;
+    overflow: hidden;
     grid-template:
         "a a" auto
         "b c" 1fr / max-content 1fr;
@@ -37,21 +42,89 @@ body {
 
 header {
     grid-area: a;
+    padding: 0 1rem;
+    color: var(--text-inverse);
     background-color: var(--header-bg);
 }
 
 nav {
     grid-area: b;
+    color: var(--text-inverse);
     background-color: var(--nav-bg);
     overflow-y: auto;
-    scrollbar-gutter: stable;
-    color: var(--text-inverse);
-    border-right: 1px solid var(--soft-blush);
+    scrollbar-color: var(--accent2) transparent;
+    border-top: 1px solid var(--accent1);
 }
 
 main {
     grid-area: c;
+    padding: 0 1rem;
     background-color: var(--workspace-bg);
     color: var(--text-primary);
     overflow-y: scroll;
+    scrollbar-color: var(--accent1) transparent;
+}
+
+a.nav {
+    padding: 0.5rem 1rem;
+    font-size: large;
+    color: var(--text-inverse);
+    text-decoration: none;
+}
+
+a.nav:hover {
+    background-color: var(--accent2);
+}
+
+a.nav:active {
+    background-color: var(--accent1);
+}
+
+.nav-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border-right: 1px solid transparent;
+
+    animation: deploy-border linear both;
+    animation-timeline: scroll(nearest block);
+}
+
+@keyframes deploy-border {
+    0%, 100% {
+        border-right-color: var(--accent1);
+    }
+}
+
+.cta-button {
+    display: inline-block;
+    color: var(--text-inverse);
+    background-color: var(--accent1);
+    text-decoration: none;
+    padding: 1rem;
+}
+
+.cta-button:active {
+    background-color: var(--accent2);
+}
+
+.logo {
+    color: var(--text-inverse);
+    text-decoration: none;
+}
+
+main a {
+    color: var(--link-unvisited);
+}
+
+main a:link {
+    color: var(--link-unvisited);
+}
+
+main a:visited {
+    color: var(--link-visited);
+}
+
+main a:active {
+    color: var(--link-active);
 }

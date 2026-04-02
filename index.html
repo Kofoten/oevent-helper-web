@@ -13,17 +13,12 @@
 
 <body>
   <header>
-    <h1>OEvent Helper</h1>
+    <a href="#" class="logo" hx-get="/" hx-target="#workspace" hx-push-url="true"><h1>OEvent Helper</h1></a>
   </header>
   <nav>
-    <ol>
-      <li>
-        <a href="/">Home</a>
-      </li>
-      <li>
-        <a href="#" hx-get="/course-prioritizer" hx-target="#workspace" hx-push-url="true">Course Prioritizer</a>
-      </li>
-    </ol>
+    <div class="nav-container">
+      <a href="#" class="nav" hx-get="/course-prioritizer" hx-target="#workspace" hx-push-url="true">Course Prioritizer</a>
+    </div>
   </nav>
   <main id="workspace">
     {{.}}
