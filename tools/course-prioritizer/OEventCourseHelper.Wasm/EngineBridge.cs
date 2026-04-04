@@ -5,9 +5,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OEventHelperWeb;
-
-public record UnexpectedError(string ErrorMessage);
+namespace OEventCourseHelper.Wasm;
 
 [JsonSerializable(typeof(CoursePrioritizerResult))]
 [JsonSerializable(typeof(UnexpectedError))]
