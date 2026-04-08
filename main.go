@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,11 +10,21 @@ import (
 	"strings"
 )
 
-var layout *template.Template
+type AppTemplates struct {
+	Layout  *template.Template
+	Welcome *template.Template
+	Error   *template.Template
+}
+
+var templates AppTemplates
 
 func main() {
-	layout = template.Must(template.ParseFiles("index.html"))
-	
+	templates = AppTemplates{
+		Layout:  template.Must(template.ParseFiles("index.html")),
+		Welcome: template.Must(template.ParseFiles("templates/welcome.html")),
+		Error:   template.Must(template.ParseFiles("templates/error.html")),
+	}
+
 	fs := http.FileServer(http.Dir("./assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
@@ -31,20 +42,17 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 
 	if urlPath == "/" {
-		homeHTML := template.HTML(`<h2>Welcome to OEvent Helper</h2>
-<p>A hub where you can use the scripts and applications i have made for solving theese issues.</p>
-<p>Most of the solutions i have made are open source and most of theese projects are licensed under the MIT License. For example the code for this page is available at <a href="https://github.com/Kofoten/oevent-helper-web">https://github.com/Kofoten/oevent-helper-web</a></p>
-<p>Select a module from the sidebar to initialize the workspace.</p>`)
-
 		if isHTMX {
-			w.Write([]byte(homeHTML))
+			templates.Welcome.Execute(w, nil)
 			return
 		}
 
-		layout.Execute(w, homeHTML)
+		var buf bytes.Buffer
+		templates.Welcome.Execute(&buf, nil)
+		templates.Layout.Execute(w, template.HTML(buf.String()))
 		return
 	}
-	
+
 	cleanPath := filepath.Clean(urlPath)
 	if strings.Contains(cleanPath, "..") {
 		http.Error(w, "Invalid path", http.StatusBadRequest)
@@ -54,17 +62,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	viewPath := filepath.Join("views", cleanPath+".html")
 
 	if _, err := os.Stat(viewPath); os.IsNotExist(err) {
-		notFoundHTML := template.HTML(`<h2>404 - Not Found</h2>
-<p>This section is either missing or under construction.</p>
-<a href="#" class="cta-button" hx-get="/" hx-target="#workspace" hx-push-url="true">Return to Start</a>`)
-
-		if isHTMX {
-			w.Write([]byte(notFoundHTML))
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-			layout.Execute(w, notFoundHTML)
-		}
-
+		serveError(w, isHTMX, 404, "Not Found", "This section is either missing or under construction.")
 		return
 	}
 
@@ -79,5 +77,27 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	layout.Execute(w, template.HTML(fragmentBytes))
+	templates.Layout.Execute(w, template.HTML(fragmentBytes))
+}
+
+func serveError(w http.ResponseWriter, isHTMX bool, code int, title string, message string) {
+	errData := struct {
+		Code    int
+		Title   string
+		Message string
+	}{
+		Code:    code,
+		Title:   title,
+		Message: message,
+	}
+
+	w.WriteHeader(code)
+
+	if isHTMX {
+		templates.Error.Execute(w, errData)
+	} else {
+		var buf bytes.Buffer
+		templates.Error.Execute(&buf, errData)
+		templates.Layout.Execute(w, template.HTML(buf.String()))
+	}
 }

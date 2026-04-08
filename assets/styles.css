@@ -45,6 +45,7 @@ header {
     padding: 0 1rem;
     color: var(--text-inverse);
     background-color: var(--header-bg);
+    border-bottom: 1px solid var(--accent1);
 }
 
 nav {
@@ -53,7 +54,6 @@ nav {
     background-color: var(--nav-bg);
     overflow-y: auto;
     scrollbar-color: var(--accent2) transparent;
-    border-top: 1px solid var(--accent1);
 }
 
 main {
