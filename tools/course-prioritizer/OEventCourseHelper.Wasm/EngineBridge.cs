@@ -13,6 +13,8 @@ public partial class EngineJsonContext : JsonSerializerContext
 {
 }
 
+public record UnexpectedError(string ErrorMessage);
+
 public partial class EngineBridge
 {
     [JSExport]

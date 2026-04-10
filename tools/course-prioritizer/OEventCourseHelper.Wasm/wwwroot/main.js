@@ -21,8 +21,7 @@ fileInput.addEventListener('change', async (e) => {
 
     console.log("Passing XML data across the Wasm boundary to the C# Engine...");
 
-    const jsonResult = exports.OEventHelperWeb.EngineBridge.Prioritize(byteArray, 3, false, []);
-    const result = JSON.parse(jsonResult);
+    const result = exports.OEventCourseHelper.Wasm.CourseListBridge.GetCourseNames(byteArray); //, 3, false, []);
 
     console.log("Engine finished:", result);
 });

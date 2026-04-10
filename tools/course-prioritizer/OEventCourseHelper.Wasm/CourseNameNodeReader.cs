@@ -1,13 +1,17 @@
+using OEventCourseHelper.Core.Xml;
+using System;
+using System.Collections.Generic;
+using System.Xml;
+
+namespace OEventCourseHelper.Wasm;
+
 public class CourseNameNodeReader : IXmlNodeReader
 {
-    private const string Namespace = "http://www.orienteering.org/datastandard/3.0";
-    
-    private const string CourseElementName = "Course";
-    private const string CourseElementSchemaType = "Course";
-
     private readonly List<string> courseNames = [];
 
-    public ImmutableArray<string> GetCourseNames() => courseNames.ToImmutableArray();
+    public Action<string> OnValidationError { get; set; }
+
+    public string[] GetCourseNames() => [.. courseNames];
 
     public bool CanRead(XmlReader reader)
     {
@@ -16,17 +20,23 @@ public class CourseNameNodeReader : IXmlNodeReader
             return false;
         }
 
-        return  reader.SchemaInfo?.SchemaType?.Name == CourseElementSchemaType;
+        return reader.SchemaInfo?.SchemaType?.Name == "Course";
     }
 
-    private void ReadCourse(XmlReader reader)
+    public void Read(XmlReader reader)
     {
         using var subReader = reader.ReadSubtree();
-        var deserializedObject = courseSerializer.Deserialize(subReader);
-
-        if (deserializedObject is IOF.Xml.Course iofCourse)
+        while (subReader.Read())
         {
-            courseNames.Add(iofCourse.Name);
+            if (subReader.NodeType != XmlNodeType.Element)
+            {
+                continue;
+            }
+
+            if (subReader.LocalName == "Name")
+            {
+                courseNames.Add(subReader.ReadElementContentAsString());
+            }
         }
     }
 }
