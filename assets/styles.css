@@ -1,4 +1,4 @@
-:root {    
+:root {
     --evergreen: #053225;
     --shadow-gray: #15111A;
     --porcelain: #FDFFFC;
@@ -49,6 +49,9 @@ header {
 }
 
 nav {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
     grid-area: b;
     color: var(--text-inverse);
     background-color: var(--nav-bg);
@@ -80,23 +83,7 @@ a.nav:active {
     background-color: var(--accent1);
 }
 
-.nav-container {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    border-right: 1px solid transparent;
-
-    animation: deploy-border linear both;
-    animation-timeline: scroll(nearest block);
-}
-
-@keyframes deploy-border {
-    0%, 100% {
-        border-right-color: var(--accent1);
-    }
-}
-
-.cta-button {
+button {
     display: inline-block;
     color: var(--text-inverse);
     background-color: var(--accent1);
@@ -104,7 +91,7 @@ a.nav:active {
     padding: 1rem;
 }
 
-.cta-button:active {
+button:active {
     background-color: var(--accent2);
 }
 

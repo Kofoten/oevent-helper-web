@@ -31,7 +31,7 @@ func main() {
 	http.HandleFunc("/", requestHandler)
 
 	log.Println("OEvent Helper running at http://localhost:8080")
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,20 +55,20 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 
 	cleanPath := filepath.Clean(urlPath)
 	if strings.Contains(cleanPath, "..") {
-		http.Error(w, "Invalid path", http.StatusBadRequest)
+		serveError(w, isHTMX, http.StatusBadRequest, "Invalid path")
 		return
 	}
 
 	viewPath := filepath.Join("views", cleanPath+".html")
 
 	if _, err := os.Stat(viewPath); os.IsNotExist(err) {
-		serveError(w, isHTMX, 404, "Not Found", "This section is either missing or under construction.")
+		serveError(w, isHTMX, http.StatusNotFound, "This section is either missing or under construction.")
 		return
 	}
 
 	fragmentBytes, err := os.ReadFile(viewPath)
 	if err != nil {
-		http.Error(w, "Error reading view file", http.StatusInternalServerError)
+		serveError(w, isHTMX, http.StatusInternalServerError, "Error reading view file")
 		return
 	}
 
@@ -80,14 +80,14 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Layout.Execute(w, template.HTML(fragmentBytes))
 }
 
-func serveError(w http.ResponseWriter, isHTMX bool, code int, title string, message string) {
+func serveError(w http.ResponseWriter, isHTMX bool, code int, message string) {
 	errData := struct {
 		Code    int
 		Title   string
 		Message string
 	}{
 		Code:    code,
-		Title:   title,
+		Title:   http.StatusText(code),
 		Message: message,
 	}
 
