@@ -2,3 +2,6 @@
 
 **/bin
 **/obj
+
+# Ignore generated assets
+assets/course-prioritizer
