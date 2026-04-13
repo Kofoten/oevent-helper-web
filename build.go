@@ -28,6 +28,9 @@ func buildCoursePrioritizer() error {
 	publishDir := filepath.Join("tools", "course-prioritizer", "OEventCourseHelper.Wasm", "bin", "Release", "net10.0", "publish", "wwwroot")
 	assetsDir := filepath.Join("assets", "course-prioritizer")
 
+	fmt.Println("Wiping old .NET publish directory...")
+	os.RemoveAll(publishDir)
+
 	cmd := exec.Command("dotnet", "publish", projectPath, "-c", "Release")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -47,7 +50,7 @@ func buildCoursePrioritizer() error {
 		return err
 	}
 
-	indexRegex := regexp.MustCompile(`^index\.html\.?(br|gz)?$`)
+	indexRegex := regexp.MustCompile(`^index\.html(\.br|\.gz)?$`)
 
 	fmt.Printf("Copying output to %s (excluding index.html)...\n", assetsDir)
 	err := filepath.WalkDir(publishDir, func(path string, d fs.DirEntry, err error) error {
