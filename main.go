@@ -4,12 +4,19 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+)
+
+var (
+	assetsDir    string
+	viewsDir     string
+	templatesDir string
 )
 
 type AppTemplates struct {
@@ -20,14 +27,21 @@ type AppTemplates struct {
 
 var templates AppTemplates
 
+func init() {
+	flag.StringVar(&assetsDir, "assets", "./assets", "Path to the assets directory")
+	flag.StringVar(&viewsDir, "views", "./views", "Path to the views directory")
+	flag.StringVar(&templatesDir, "templates", "./templates", "Path to the templates directory")
+	flag.Parse()
+}
+
 func main() {
 	templates = AppTemplates{
 		Layout:  template.Must(template.ParseFiles("index.html")),
-		Welcome: template.Must(template.ParseFiles("templates/welcome.html")),
-		Error:   template.Must(template.ParseFiles("templates/error.html")),
+		Welcome: template.Must(template.ParseFiles(filepath.Join(templatesDir, "welcome.html"))),
+		Error:   template.Must(template.ParseFiles(filepath.Join(templatesDir, "error.html"))),
 	}
 
-	fs := http.FileServer(http.Dir("./assets"))
+	fs := http.FileServer(http.Dir(assetsDir))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
 	http.HandleFunc("/", requestHandler)
@@ -61,7 +75,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	viewPath := filepath.Join("views", cleanPath+".html")
+	viewPath := filepath.Join(viewsDir, cleanPath+".html")
 
 	if _, err := os.Stat(viewPath); os.IsNotExist(err) {
 		serveError(w, isHTMX, http.StatusNotFound, "This section is either missing or under construction.")

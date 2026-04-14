@@ -1,7 +1,10 @@
+# Ignore builds
+dev
+bin
+
+# Ignore VS settings
 **/.vs
 
+# Ignore C# cache folders
 **/bin
 **/obj
-
-# Ignore generated assets
-assets/course-prioritizer

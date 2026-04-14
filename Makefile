@@ -8,8 +8,9 @@ generate:
 
 # 2. Launch the server (Generates assets first, then runs)
 dev: generate
-	go run main.go
+	go run main.go --assets=./dev/assets --views=./dev/views --templates=./dev/templates
 
 # 3. Build to an output directory (Generates assets first, then compiles Go binary)
 build: generate
 	go build -o bin/$(APP_NAME) .
+	cp -r ./dev/* ./bin/

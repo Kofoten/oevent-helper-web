@@ -1,4 +1,12 @@
-<script type="importmap"></script>
-<script type='module' src="/assets/course-prioritizer/main.js"></script>
+<script type="importmap">{{.ImportMap}}</script>
+<script type='module'>
+    import { initializeEngineAsync } from '/assets/course-prioritizer/main.js';
+
+    const exports = await initializeEngineAsync();
+</script>
 <h2>Course Prioritizer</h2>
-<div id="module"></div>
+<div id="wizard">
+    <form id="load-iofxml">
+        <input type="file" id="xml-upload" accept=".xml" />
+    </form>
+</div>
