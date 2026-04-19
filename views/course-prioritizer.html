@@ -1,12 +1,245 @@
+<style>
+    .chassis-panel {
+        background: color-mix(in srgb, var(--workspace-bg, #FDFFFC) 95%, var(--shadow-gray, #15111A) 5%);
+        border: 1px solid var(--accent2, #62A87C);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .drop-zone {
+        border: 2px dashed var(--mint-leaf, #62A87C);
+        border-radius: 8px;
+        padding: 4rem 2rem;
+        text-align: center;
+        background-color: transparent;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .drop-zone.dragover {
+        background-color: color-mix(in srgb, var(--mint-leaf, #62A87C) 20%, transparent 80%);
+        border-color: var(--atomic-tangerine, #F4743B);
+    }
+
+    .wizard-step { display: none; }
+
+    .btn {
+        display: inline-block;
+        background-color: var(--atomic-tangerine, #F4743B);
+        color: var(--text-inverse, #FDFFFC);
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-top: 1rem;
+    }
+    
+    .btn:hover { background-color: var(--mint-leaf, #62A87C); }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+    .form-group input[type="number"] { padding: 0.5rem; width: 100px; }
+    
+    .course-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        background: var(--workspace-bg, #FDFFFC);
+    }
+</style>
+
 <script type="importmap">{{.ImportMap}}</script>
 <script type='module'>
     import { initializeEngineAsync } from '/assets/course-prioritizer/main.js';
 
-    const exports = await initializeEngineAsync();
+    // Global state
+    window.OEventEngine = null;
+    window.currentFileBytes = null;
+
+    // Check URL for shared results
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedResult = urlParams.get('result');
+
+    async function bootEngine() {
+        try {
+            window.OEventEngine = await initializeEngineAsync();
+            
+            // If the URL contains a result payload, jump straight to Step 3
+            if (sharedResult) {
+                const parsedResult = JSON.parse(atob(sharedResult));
+                window.showResults(parsedResult);
+            } else {
+                window.switchStep('step-1');
+            }
+        } catch (err) {
+            alert("Failed to boot Wasm engine: " + err.message);
+        }
+    }
+
+    window.switchStep = function(stepId) {
+        document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+        document.getElementById('wasm-loader').style.display = 'none';
+        document.getElementById(stepId).style.display = 'block';
+    }
+
+    window.showSpinner = function(text) {
+        document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+        const loader = document.getElementById('wasm-loader');
+        loader.querySelector('h3').textContent = text;
+        loader.style.display = 'flex';
+    }
+
+    // Step 1: Process the uploaded file
+    window.handleFileUpload = async function(file) {
+        if (!file || !window.OEventEngine) return;
+        
+        window.showSpinner('Parsing Course List...');
+        
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            window.currentFileBytes = new Uint8Array(arrayBuffer);
+            
+            // Call C# Wasm Bridge to extract course names
+            const namesResult = window.OEventEngine.OEventCourseHelper.Wasm.CourseListBridge.GetCourseNames(window.currentFileBytes);
+            
+            if (namesResult[0] !== "SUCCESS") {
+                throw new Error(namesResult.slice(1).join(', '));
+            }
+            
+            const courses = namesResult.slice(1);
+            buildConfigUI(courses);
+            window.switchStep('step-2');
+            
+        } catch (err) {
+            alert("Error reading file: " + err.message);
+            window.switchStep('step-1');
+        }
+    }
+
+    // Step 2: Build configuration UI
+    function buildConfigUI(courses) {
+        const container = document.getElementById('course-checkboxes');
+        container.innerHTML = '';
+        courses.forEach(c => {
+            const label = document.createElement('label');
+            label.style.display = 'block';
+            label.innerHTML = `<input type="checkbox" value="${c}" checked> ${c}`;
+            container.appendChild(label);
+        });
+    }
+
+    // Step 2 -> 3: Execute Prioritization
+    window.runPrioritization = function() {
+        window.showSpinner('Running V8 Engine Computation...');
+        
+        // Timeout allows DOM to update and show the spinner before the synchronous Wasm blocks the main thread
+        setTimeout(() => {
+            try {
+                const beamWidth = parseInt(document.getElementById('beam-width').value) || 3;
+                const strict = document.getElementById('strict-mode').checked;
+                
+                // Gather selected courses for the filter array
+                const checkboxes = document.querySelectorAll('#course-checkboxes input:checked');
+                const filter = Array.from(checkboxes).map(cb => cb.value);
+                
+                // Call C# Wasm Bridge to compute prioritization
+                const result = window.OEventEngine.OEventCourseHelper.Wasm.EngineBridge.Prioritize(
+                    window.currentFileBytes, 
+                    beamWidth, 
+                    strict, 
+                    filter
+                );
+                
+                // Push encoded result to URL for sharing
+                if (result.success) {
+                    const encoded = btoa(JSON.stringify(result));
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('result', encoded);
+                    window.history.pushState({}, '', newUrl);
+                }
+                
+                window.showResults(result);
+            } catch (err) {
+                alert("Engine Error: " + err.message);
+                window.switchStep('step-2');
+            }
+        }, 100); 
+    }
+
+    // Step 3: Render Results
+    window.showResults = function(result) {
+        const output = document.getElementById('engine-output');
+        if (result.success) {
+            output.textContent = JSON.stringify(result, null, 2);
+        } else {
+            output.textContent = `Error [${result.error.type}]:\n${Array.isArray(result.error.messages) ? result.error.messages.join('\n') : result.error.messages}`;
+        }
+        window.switchStep('step-3');
+    }
+
+    // Initialize on load
+    bootEngine();
 </script>
 <h2>Course Prioritizer</h2>
-<div id="wizard">
-    <form id="load-iofxml">
-        <input type="file" id="xml-upload" accept=".xml" />
-    </form>
+<div id="wasm-loader" class="htmx-indicator htmx-request chassis-panel" style="display: flex; align-items: center; gap: 1rem;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+    </svg>
+    <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+    <h3>Loading .NET WebAssembly Engine...</h3>
+</div>
+
+<div id="step-1" class="wizard-step">
+    <p>Upload an IOF 3.0 XML file to begin.</p>
+    <div id="upload-zone" class="drop-zone chassis-panel"
+        hx-on:click="document.getElementById('xml-upload').click()"
+        hx-on:dragover="event.preventDefault(); this.classList.add('dragover')"
+        hx-on:dragleave="this.classList.remove('dragover')"
+        hx-on:drop="event.preventDefault(); this.classList.remove('dragover'); if(event.dataTransfer.files.length) window.handleFileUpload(event.dataTransfer.files[0])">
+        
+        <p><strong>Drag & Drop your IOF XML file here</strong> or click to browse your computer</p>
+        
+        <input type="file" id="xml-upload" accept=".xml" style="display: none;" 
+            hx-on:change="if(this.files.length) window.handleFileUpload(this.files[0])" />
+    </div>
+</div>
+
+<div id="step-2" class="wizard-step">
+    <div class="chassis-panel">
+        <h3>Configuration</h3>
+        
+        <div class="form-group">
+            <label>Select Courses to Include:</label>
+            <div id="course-checkboxes" class="course-list">
+                </div>
+        </div>
+
+        <div class="form-group">
+            <label for="beam-width">Beam Width (Algorithm Search Depth):</label>
+            <input type="number" id="beam-width" value="3" min="1" max="10">
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="strict-mode">
+                Strict Mode (Fails if any selected control is inaccessible)
+            </label>
+        </div>
+
+        <button class="btn" onclick="window.runPrioritization()">Run Prioritizer</button>
+        <button class="btn" style="background-color: var(--shadow-gray); margin-left: 1rem;" onclick="window.switchStep('step-1')">Cancel</button>
+    </div>
+</div>
+
+<div id="step-3" class="wizard-step">
+    <div class="chassis-panel">
+        <h3>Engine Telemetry Output:</h3>
+        <pre id="engine-output" style="background: #000; color: #4fc1ff; padding: 1rem; border-radius: 4px; overflow-x: auto; min-height: 200px;"></pre>
+        
+        <button class="btn" onclick="window.history.pushState({}, '', window.location.pathname); window.switchStep('step-1'); window.currentFileBytes = null; document.getElementById('xml-upload').value = '';">Start Over</button>
+    </div>
 </div>
