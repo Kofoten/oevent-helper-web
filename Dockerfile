@@ -6,4 +6,4 @@ WORKDIR /app
 
 EXPOSE 8080
 
-ENTRYPOINT [./oevent-helper-web]
+ENTRYPOINT ["./oevent-helper-web"]

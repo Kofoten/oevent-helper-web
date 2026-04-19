@@ -14,9 +14,11 @@ dev: generate
 build: generate
 	go build -o bin/$(APP_NAME) .
 	cp -r ./dev/* ./bin/
+	cp index.html ./bin/
 
 # 4. Build a completely self-contained Scratch Docker image
 docker: generate
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o bin/$(APP_NAME) .
 	cp -r ./dev/* ./bin/
+	cp index.html ./bin/
 	docker build -t oevent-helper .
