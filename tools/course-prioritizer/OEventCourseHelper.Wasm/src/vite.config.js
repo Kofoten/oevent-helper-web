@@ -4,7 +4,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 export default defineConfig({
     plugins: [svelte({
         compileroptions: {
-            css: 'external'
+            css: 'external',
+            customElement: true,
         }
     })],
     build: {
@@ -17,6 +18,9 @@ export default defineConfig({
             entry: './entry.js',
             formats: ['es'],
             fileName: 'course-prioritizer'
+        },
+        rollupOptions: {
+            external: ['./main.js'], // Add this line
         }
     }
 });

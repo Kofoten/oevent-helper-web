@@ -11,3 +11,6 @@ bin
 
 # Ignore any node_modules
 **/node_modules
+
+# Ignore generated UI
+**/ui

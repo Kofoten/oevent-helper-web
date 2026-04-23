@@ -44,9 +44,9 @@ export function buildEngineResult(statusCode, errors, skippedControls, summarySt
     }
 }
 
-export async function initializeEngineAsync() {
+window.initializeEngineAsync = async function initializeEngineAsync() {
     const { setModuleImports, getAssemblyExports, getConfig } = await dotnet.create();
     setModuleImports('main.js', { buildEngineResult });
     const config = getConfig();
-    return await getAssemblyExports(config.mainAssemblyName);   
+    return await getAssemblyExports(config.mainAssemblyName);
 }
