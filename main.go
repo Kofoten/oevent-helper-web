@@ -47,7 +47,7 @@ func main() {
 	http.HandleFunc("/", requestHandler)
 
 	log.Println("OEvent Helper running at http://localhost:8080")
-	err := http.ListenAndServe("localhost:8080", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
