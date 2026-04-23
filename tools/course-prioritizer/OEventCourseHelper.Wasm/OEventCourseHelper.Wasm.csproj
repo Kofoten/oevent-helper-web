@@ -5,10 +5,23 @@
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="src\course-prioritizer.svelte" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="OEventCourseHelper.Core" Version="1.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <StaticWebAssetFingerprintPattern Include="JS" Pattern="*.js" Expression="#[.{fingerprint}]!" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="src\node_modules\**" />
+    <None Include="src\node_modules\**" DeploymentContent="false" />
+  </ItemGroup>
+
+  <Target Name="SvelteBuild" BeforeTargets="Build">
+    <Exec Command="npm install" WorkingDirectory="src" Condition="!Exists('src/node_modules')" />
+    <Exec Command="npm run build" WorkingDirectory="src" />
+  </Target>
 </Project>

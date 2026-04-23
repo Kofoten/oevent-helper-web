@@ -8,3 +8,6 @@ bin
 # Ignore C# cache folders
 **/bin
 **/obj
+
+# Ignore any node_modules
+**/node_modules

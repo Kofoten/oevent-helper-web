@@ -126,19 +126,10 @@ func injectWasmScripts(targetDir string) error {
 
 	importMapJSON = strings.ReplaceAll(importMapJSON, `"./`, `"/assets/course-prioritizer/`)
 
-	mainScriptRegex := regexp.MustCompile(`<script type='module' src="main\.([^\"]+)\.js"></script>`)
-	scriptMatches := mainScriptRegex.FindStringSubmatch(pubIndex)
-	fingerprint := ""
-	if len(scriptMatches) > 1 {
-		fingerprint = scriptMatches[1]
-	}
-
 	templateData := struct {
-		ImportMap   string
-		Fingerprint string
+		ImportMap string
 	}{
-		ImportMap:   importMapJSON,
-		Fingerprint: fingerprint,
+		ImportMap: importMapJSON,
 	}
 
 	viewPath := filepath.Join(targetDir, "views", "course-prioritizer.html")
