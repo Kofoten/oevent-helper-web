@@ -75,7 +75,16 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	viewPath := filepath.Join(viewsDir, cleanPath+".html")
+	targetPath := filepath.Join(viewsDir, cleanPath)
+	info, err := os.Stat(targetPath)
+
+	if err == nil && !info.IsDir() {
+		http.ServeFile(w, r, targetPath)
+		return
+	}
+
+	toolName := filepath.Base(cleanPath)
+	viewPath := filepath.Join(viewsDir, cleanPath, toolName+".html")
 
 	if _, err := os.Stat(viewPath); os.IsNotExist(err) {
 		serveError(w, isHTMX, http.StatusNotFound, "This section is either missing or under construction.")

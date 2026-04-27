@@ -85,10 +85,15 @@ a.nav:active {
 
 button {
     display: inline-block;
+    border: none;
     color: var(--text-inverse);
     background-color: var(--accent1);
     text-decoration: none;
     padding: 1rem;
+}
+
+button:hover {
+    filter: brightness(0.8);
 }
 
 button:active {

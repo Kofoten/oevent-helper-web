@@ -1,4 +1,4 @@
-<svelte:options customElement="course-prioritizer" />
+<svelte:options customElement={{ tag: "course-prioritizer", shadow: "none" }} />
 
 <script>
   import { onMount } from "svelte";
