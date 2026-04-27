@@ -15,7 +15,7 @@
     let selectedCourses = $state([]);
     let beamWidth = $state(3);
     let strictMode = $state(false);
-    let engineOutput = $state("");
+    let engineOutput = $state(null);
 
     onMount(async () => {
         try {
@@ -161,10 +161,12 @@
 
     function showResults(result) {
         if (result.success) {
-            engineOutput = JSON.stringify(result, null, 2);
+            engineOutput = result;
         } else {
             const msgs = result.error.messages;
-            engineOutput = `Error [${result.error.type}]:\n${Array.isArray(msgs) ? msgs.join("\n") : msgs}`;
+            alert(
+                `Error [${result.error.type}]:\n${Array.isArray(msgs) ? msgs.join("\n") : msgs}`,
+            );
         }
         currentStep = "complete";
     }
@@ -173,6 +175,15 @@
         window.history.pushState({}, "", window.location.pathname);
         currentFileBytes = null;
         currentStep = "upload";
+    }
+
+    async function copyShareUrl() {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            alert("Link copied to clipboard!");
+        } catch (err) {
+            alert("Failed to copy link.");
+        }
     }
 </script>
 
@@ -236,6 +247,7 @@
 
 {#if currentStep === "complete"}
     <h3>Engine Telemetry Output:</h3>
-    <pre class="output-box">{engineOutput}</pre>
-    <button class="btn" onclick={reset}>Start Over</button>
+    <pre>{engineOutput}</pre>
+    <button onclick={copyShareUrl}>Copy Share Link</button>
+    <button onclick={reset}>Start Over</button>
 {/if}
