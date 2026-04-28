@@ -44,10 +44,47 @@
     }
   });
 
+  function encodeCSVField(value) {
+    let str = "";
+    if (value !== null && value !== undefined) {
+      str = `${value}`.replaceAll('"', '""');
+    }
+    return `"${str}"`;
+  }
+
+  function createCSVRecord(data, properties) {
+    const fields = new Array(properties.length);
+    for (let i = 0; i < properties.length; i++) {
+      fields[i] = encodeCSVField(data[properties[i]]);
+    }
+
+    return fields.join(",");
+  }
+
   async function compressToBase64(data) {
-    const stream = new Blob([JSON.stringify(data)])
+    const summary = new Int32Array([
+      data.summary.totalCourseCount,
+      data.summary.requiredCourseCount,
+      data.summary.totalControlCount,
+      data.summary.visitedControlCount,
+    ]);
+
+    const skippedControls = data.validationInfo.skippedControls
+      .map((x) => encodeCSVField(x))
+      .join("\n");
+
+    const prioritizedCourses = data.priorityOrder
+      .map((x) => createCSVRecord(x, ["courseName", "required"]))
+      .join("\n");
+
+    const stream = new Blob([
+      summary,
+      skippedControls,
+      "\x1D",
+      prioritizedCourses,
+    ])
       .stream()
-      .pipeThrough(new CompressionStream("gzip"));
+      .pipeThrough(new CompressionStream("deflate-raw"));
     const buffer = await new Response(stream).arrayBuffer();
     const bytes = new Uint8Array(buffer);
 
@@ -95,12 +132,115 @@
       if (i + 3 < len) bytes[p++] = ((b3 & 3) << 6) | b4;
     }
 
-    const ds = new DecompressionStream("gzip");
+    const ds = new DecompressionStream("deflate-raw");
     const decompressedStream = new Blob([bytes]).stream().pipeThrough(ds);
 
     const response = new Response(decompressedStream);
-    const text = await response.text();
-    return JSON.parse(text);
+    const buffer = await response.arrayBuffer();
+    const summaryInts = new Int32Array(buffer.slice(0, 16));
+
+    const data = {
+      success: true,
+      summary: {
+        totalCourseCount: summaryInts[0],
+        requiredCourseCount: summaryInts[1],
+        totalControlCount: summaryInts[2],
+        visitedControlCount: summaryInts[3],
+      },
+      validationInfo: {
+        skippedControls: [],
+      },
+      priorityOrder: [],
+    };
+
+    const textBuffer = buffer.slice(16);
+    const text = new TextDecoder().decode(textBuffer);
+
+    let positon = 0;
+    let currentField = "";
+    let startQuoteIndex = -1;
+    for (let i = 0; i < text.length; i++) {
+      const nextI = i + 1;
+      if (text[i] === '"') {
+        if (startQuoteIndex === -1) {
+          startQuoteIndex = i;
+        } else if (nextI !== text.length && text[nextI] === '"') {
+          currentField += '"';
+          i++;
+        } else {
+          startQuoteIndex = -1;
+        }
+
+        continue;
+      }
+
+      if (startQuoteIndex >= 0) {
+        currentField += text[i];
+      } else if (text[i] === "\n") {
+        data.validationInfo.skippedControls.push(currentField);
+        currentField = "";
+      } else if (text[i] === "\x1D") {
+        data.validationInfo.skippedControls.push(currentField);
+        positon = i + 1;
+        break;
+      } else {
+        return {
+          success: false,
+          error: {
+            code: -1,
+            type: "UnexpectedError",
+            messages: [`Invalid value in result query parameter`],
+          },
+        };
+      }
+    }
+
+    currentField = "";
+    startQuoteIndex = -1;
+    let currentCourse = {};
+    for (let i = positon; i < text.length; i++) {
+      const nextI = i + 1;
+      if (text[i] === '"') {
+        if (startQuoteIndex === -1) {
+          startQuoteIndex = i;
+        } else if (nextI !== text.length && text[nextI] === '"') {
+          currentField += '"';
+          i++;
+        } else {
+          startQuoteIndex = -1;
+        }
+
+        continue;
+      }
+
+      if (startQuoteIndex >= 0) {
+        currentField += text[i];
+      } else if (text[i] === ",") {
+        currentCourse.courseName = currentField;
+        currentField = "";
+      } else if (text[i] === "\n" || i === text.length - 1) {
+        currentCourse.required = currentField.toLowerCase() === "true";
+        data.priorityOrder.push(currentCourse);
+        currentField = "";
+        currentCourse = {};
+      } else {
+        return {
+          success: false,
+          error: {
+            code: -1,
+            type: "UnexpectedError",
+            messages: [`Invalid value in result query parameter`],
+          },
+        };
+      }
+    }
+
+    if (currentCourse.courseName !== undefined) {
+      currentCourse.required = currentField.toLowerCase() === "true";
+      data.priorityOrder.push(currentCourse);
+    }
+
+    return data;
   }
 
   async function handleFileUpload(file) {
