@@ -8,7 +8,7 @@
     <Content Include="src\course-prioritizer.svelte" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="OEventCourseHelper.Core" Version="1.1.2" />
+    <PackageReference Include="OEventCourseHelper.Core" Version="1.1.3" />
   </ItemGroup>
 
   <ItemGroup>

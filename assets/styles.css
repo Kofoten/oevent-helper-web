@@ -86,10 +86,11 @@ a.nav:active {
 button {
     display: inline-block;
     border: none;
+    font-size: large;
     color: var(--text-inverse);
     background-color: var(--accent1);
     text-decoration: none;
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 button:hover {
@@ -98,6 +99,77 @@ button:hover {
 
 button:active {
     background-color: var(--accent2);
+}
+
+button:focus {
+    outline: 2px solid var(--accent2);
+}
+
+fieldset {
+    border: none;
+}
+
+input {
+    background-color: var(--workspace-bg);
+    color: var(--text-primary);
+    border: none;
+}
+
+input:focus {
+    outline: 2px solid var(--accent1);
+}
+
+input[type="number"],
+input[type="text"] {
+    border: 1px solid var(--accent2);
+    padding: 0.2rem;
+    accent-color: var(--accent1);
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: transparent;
+    border: 1px solid var(--accent2);
+    cursor: pointer;
+    display: inline-grid;
+    place-content: center;
+    margin: 0;
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--accent1);
+    border-color: var(--accent1);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%23FFFFFF' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-position: center;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+input[type="checkbox"]:focus {
+    border-color: transparent;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: var(--accent1);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4-4 4 4M4 10l4 4 4-4'/%3E%3C/svg%3E");
+    -webkit-mask-size: 12px;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center right 4px;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4-4 4 4M4 10l4 4 4-4'/%3E%3C/svg%3E");
+    mask-size: 12px;
+    mask-repeat: no-repeat;
+    mask-position: center right 4px;
+    width: 20px;
+    bottom: 0;
+    top: 0;
+    cursor: pointer;
 }
 
 .logo {

@@ -2,8 +2,9 @@
 dev
 bin
 
-# Ignore VS settings
+# Ignore VS and Code settings
 **/.vs
+**/.vscode
 
 # Ignore C# cache folders
 **/bin

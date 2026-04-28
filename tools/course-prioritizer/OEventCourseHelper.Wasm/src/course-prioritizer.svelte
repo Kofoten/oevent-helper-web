@@ -31,7 +31,16 @@
         currentStep = "upload";
       }
     } catch (err) {
-      alert(`Failed to initialize .NET WebAssembly Engine: ${err.message}`);
+      showResults({
+        success: false,
+        error: {
+          code: -1,
+          type: "UnexpectedError",
+          messages: [
+            `Failed to initialize .NET WebAssembly Engine: ${err.message}`,
+          ],
+        },
+      });
     }
   });
 
@@ -119,8 +128,14 @@
       selectedCourses = [...courses];
       currentStep = "configure";
     } catch (err) {
-      alert(`Error reading file: ${err.message}`);
-      currentStep = "upload";
+      showResults({
+        success: false,
+        error: {
+          code: -1,
+          type: "UnexpectedError",
+          messages: [`Failed to load file: ${err.message}`],
+        },
+      });
     }
   }
 
@@ -146,21 +161,20 @@
 
         showResults(result);
       } catch (err) {
-        alert(`Engine Error: ${err.message}`);
-        currentStep = "configure";
+        showResults({
+          success: false,
+          error: {
+            code: -1,
+            type: "UnexpectedError",
+            messages: [`Engine failure: ${err.message}`],
+          },
+        });
       }
     }, 100);
   }
 
   function showResults(result) {
-    if (result.success) {
-      engineOutput = result;
-    } else {
-      const msgs = result.error.messages;
-      alert(
-        `Error [${result.error.type}]:\n${Array.isArray(msgs) ? msgs.join("\n") : msgs}`,
-      );
-    }
+    engineOutput = result;
     currentStep = "complete";
   }
 
@@ -173,7 +187,6 @@
   async function copyShareUrl() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
     } catch (err) {
       alert("Failed to copy link.");
     }
@@ -198,11 +211,7 @@
 {/if}
 
 {#if currentStep === "upload"}
-  <p>Upload an IOF 3.0 XML file to begin.</p>
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <p>
-    <strong>Drag & Drop your IOF XML file here</strong> or click to browse
-  </p>
+  <p>Select an IOF 3.0 XML file to begin.</p>
   <input
     type="file"
     id="xml-upload"
@@ -217,19 +226,24 @@
 
 {#if currentStep === "configure"}
   <h3>Configuration</h3>
-  <p>Select Courses to Include:</p>
-  {#each courses as course}
-    <label style="display: block;">
-      <input type="checkbox" value={course} bind:group={selectedCourses} />
-      {course}
+  <fieldset>
+    <p>Select Courses to Include:</p>
+    {#each courses as course}
+      <label style="display: block;">
+        <input type="checkbox" value={course} bind:group={selectedCourses} />
+        {course}
+      </label>
+    {/each}
+  </fieldset>
+  <fieldset>
+    <label for="beam-width">Beam Width:</label>
+    <input type="number" bind:value={beamWidth} min="1" max="10" />
+    <br />
+    <label>
+      <input type="checkbox" bind:checked={strictMode} />
+      Strict Mode
     </label>
-  {/each}
-  <label for="beam-width">Beam Width:</label>
-  <input type="number" bind:value={beamWidth} min="1" max="10" />
-  <label>
-    <input type="checkbox" bind:checked={strictMode} />
-    Strict Mode
-  </label>
+  </fieldset>
   <button onclick={runPrioritization}>Run Prioritizer</button>
   <button onclick={() => (currentStep = "upload")}>Cancel</button>
 {/if}
