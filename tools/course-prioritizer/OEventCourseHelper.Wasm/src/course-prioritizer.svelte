@@ -6,8 +6,9 @@
   const base64Alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
-  let engine = $state(null);
-  let currentFileBytes = $state(null);
+  let engine = $state.raw(null);
+  let currentFileBytes = $state.raw(null);
+  let fileName = $state(null);
   let currentStep = $state("loading");
   let loadingText = $state("Loading .NET WebAssembly Engine...");
 
@@ -79,6 +80,8 @@
 
     const stream = new Blob([
       summary,
+      fileName,
+      "\x1D",
       skippedControls,
       "\x1D",
       prioritizedCourses,
@@ -156,10 +159,13 @@
     const textBuffer = buffer.slice(16);
     const text = new TextDecoder().decode(textBuffer);
 
-    let positon = 0;
+    const fileNameLength = text.indexOf("\x1D");
+    fileName = text.substring(0, fileNameLength);
+
+    let positon = fileNameLength + 1;
     let currentField = "";
     let startQuoteIndex = -1;
-    for (let i = 0; i < text.length; i++) {
+    for (let i = positon; i < text.length; i++) {
       const nextI = i + 1;
       if (text[i] === '"') {
         if (startQuoteIndex === -1) {
@@ -252,6 +258,13 @@
     currentStep = "loading";
 
     try {
+      const dotIndex = file.name.lastIndexOf(".");
+      if (dotIndex === -1) {
+        fileName = file.name;
+      } else {
+        fileName = file.name.substring(0, dotIndex);
+      }
+
       const arrayBuffer = await file.arrayBuffer();
       currentFileBytes = new Uint8Array(arrayBuffer);
 
@@ -321,7 +334,31 @@
   function reset() {
     window.history.pushState({}, "", window.location.pathname);
     currentFileBytes = null;
+    fileName = null;
     currentStep = "upload";
+  }
+
+  async function exportCsv() {
+    const fieldOrder = ["priority", "courseName", "required"];
+    const records = [
+      { priority: "Priority", courseName: "CourseName", required: "Required" },
+      ...engineOutput.priorityOrder.map((x, i) => ({ priority: i + 1, ...x })),
+    ];
+
+    const content = records
+      .map((x) => createCSVRecord(x, fieldOrder))
+      .join("\n");
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const anchor = document.createElement("a");
+    anchor.href = blobUrl;
+    anchor.download = `${fileName}.Priority.csv`;
+    anchor.style = "display: none;";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(blobUrl);
   }
 
   async function copyShareUrl() {
@@ -369,7 +406,7 @@
   <fieldset>
     <p>Select Courses to Include:</p>
     {#each courses as course}
-      <label style="display: block;">
+      <label>
         <input type="checkbox" value={course} bind:group={selectedCourses} />
         {course}
       </label>
@@ -377,8 +414,13 @@
   </fieldset>
   <fieldset>
     <label for="beam-width">Beam Width:</label>
-    <input type="number" bind:value={beamWidth} min="1" max="10" />
-    <br />
+    <input
+      id="beam-width"
+      type="number"
+      bind:value={beamWidth}
+      min="1"
+      max="10"
+    />
     <label>
       <input type="checkbox" bind:checked={strictMode} />
       Strict Mode
@@ -417,6 +459,7 @@
       {/each}
     </ol>
     <button onclick={copyShareUrl}>Copy Share Link</button>
+    <button onclick={exportCsv}>Export CSV</button>
   {:else}
     <h4>{engineOutput.error.code} - {engineOutput.error.type}</h4>
     <ul>

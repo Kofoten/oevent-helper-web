@@ -48,6 +48,10 @@ header {
     border-bottom: 1px solid var(--accent1);
 }
 
+header h1 {
+    width: fit-content;
+}
+
 nav {
     display: flex;
     flex-direction: column;
@@ -83,6 +87,8 @@ a.nav:active {
     background-color: var(--accent1);
 }
 
+input[type="file"]::file-selector-button,
+input[type="submit"],
 button {
     display: inline-block;
     border: none;
@@ -91,16 +97,23 @@ button {
     background-color: var(--accent1);
     text-decoration: none;
     padding: 0.5rem;
+    cursor: pointer;
 }
 
+input[type="file"]::file-selector-button:hover,
+input[type="submit"]:hover,
 button:hover {
     filter: brightness(0.8);
 }
 
+input[type="file"]::file-selector-button:active,
+input[type="submit"]:active,
 button:active {
     background-color: var(--accent2);
 }
 
+input[type="file"]::file-selector-button:focus,
+input[type="submit"]:focus,
 button:focus {
     outline: 2px solid var(--accent2);
 }
@@ -113,6 +126,7 @@ input {
     background-color: var(--workspace-bg);
     color: var(--text-primary);
     border: none;
+    margin: 0.2rem;
 }
 
 input:focus {
@@ -172,9 +186,21 @@ input[type="number"]::-webkit-outer-spin-button {
     cursor: pointer;
 }
 
+label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    cursor: pointer;
+}
+
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     color: var(--text-inverse);
     text-decoration: none;
+    width: fit-content;
 }
 
 main a {
