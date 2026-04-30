@@ -41,6 +41,7 @@ body {
 }
 
 header {
+    display: flex;
     grid-area: a;
     padding: 0 1rem;
     color: var(--text-inverse);
@@ -65,7 +66,7 @@ nav {
 
 main {
     grid-area: c;
-    padding: 0 1rem;
+    padding: 1rem;
     background-color: var(--workspace-bg);
     color: var(--text-primary);
     overflow-y: scroll;
@@ -85,6 +86,11 @@ a.nav:hover {
 
 a.nav:active {
     background-color: var(--accent1);
+}
+
+a.nav:focus {
+    outline: 2px solid var(--accent2);
+    outline-offset: -2px;
 }
 
 input[type="file"]::file-selector-button,
@@ -194,15 +200,6 @@ label:has(input[type="checkbox"]) {
     cursor: pointer;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--text-inverse);
-    text-decoration: none;
-    width: fit-content;
-}
-
 main a {
     color: var(--link-unvisited);
 }
@@ -217,4 +214,67 @@ main a:visited {
 
 main a:active {
     color: var(--link-active);
+}
+
+#logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-inverse);
+    text-decoration: none;
+    width: fit-content;
+}
+
+#logo:focus {
+    outline: 2px solid var(--accent2);
+    outline-offset: -2px;
+}
+
+#menu-toggle {
+    display: none;
+    background: transparent;
+    padding: 0.5rem;
+    border: none;
+    margin-left: auto;
+    outline-offset: -2px;
+}
+
+#workspace {
+    max-width: 800px;
+}
+
+@media (max-width: 768px) {
+    body {
+        grid-template:
+            "a" auto
+            "b" auto
+            "c" 1fr / 1fr;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    main {
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    #menu-toggle {
+        display: block;
+    }
+
+    nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: var(--nav-bg);
+    }
+
+    nav.open {
+        display: flex;
+    }
+
+    a.nav {
+        padding: 1rem;
+        border-bottom: 1px solid var(--accent2);
+    }
 }

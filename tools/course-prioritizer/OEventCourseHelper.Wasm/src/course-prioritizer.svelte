@@ -165,39 +165,43 @@
     let positon = fileNameLength + 1;
     let currentField = "";
     let startQuoteIndex = -1;
-    for (let i = positon; i < text.length; i++) {
-      const nextI = i + 1;
-      if (text[i] === '"') {
-        if (startQuoteIndex === -1) {
-          startQuoteIndex = i;
-        } else if (nextI !== text.length && text[nextI] === '"') {
-          currentField += '"';
-          i++;
-        } else {
-          startQuoteIndex = -1;
+    if (text[positon] === "\x1D") {
+      positon++;
+    } else {
+      for (let i = positon; i < text.length; i++) {
+        const nextI = i + 1;
+        if (text[i] === '"') {
+          if (startQuoteIndex === -1) {
+            startQuoteIndex = i;
+          } else if (nextI !== text.length && text[nextI] === '"') {
+            currentField += '"';
+            i++;
+          } else {
+            startQuoteIndex = -1;
+          }
+
+          continue;
         }
 
-        continue;
-      }
-
-      if (startQuoteIndex >= 0) {
-        currentField += text[i];
-      } else if (text[i] === "\n") {
-        data.validationInfo.skippedControls.push(currentField);
-        currentField = "";
-      } else if (text[i] === "\x1D") {
-        data.validationInfo.skippedControls.push(currentField);
-        positon = i + 1;
-        break;
-      } else {
-        return {
-          success: false,
-          error: {
-            code: -1,
-            type: "UnexpectedError",
-            messages: [`Invalid value in result query parameter`],
-          },
-        };
+        if (startQuoteIndex >= 0) {
+          currentField += text[i];
+        } else if (text[i] === "\n") {
+          data.validationInfo.skippedControls.push(currentField);
+          currentField = "";
+        } else if (text[i] === "\x1D") {
+          data.validationInfo.skippedControls.push(currentField);
+          positon = i + 1;
+          break;
+        } else {
+          return {
+            success: false,
+            error: {
+              code: -1,
+              type: "UnexpectedError",
+              messages: [`Invalid value in result query parameter`],
+            },
+          };
+        }
       }
     }
 
@@ -388,6 +392,15 @@
 {/if}
 
 {#if currentStep === "upload"}
+  <p>
+    This tool prioritizes orienteering courses to minimize the volunteer effort
+    required for verification. By using a heuristically guided beam search, it
+    determines the most efficient order for test running every control point in
+    the event. The source code for the engine is available in the <a
+      href="https://github.com/Kofoten/oevent-course-helper"
+      >official repository</a
+    >.
+  </p>
   <p>Select an IOF 3.0 XML file to begin.</p>
   <input
     type="file"

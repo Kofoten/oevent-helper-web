@@ -13,18 +13,25 @@
 
 <body>
   <header>
-    <a href="/" class="logo" hx-get="/" hx-target="#workspace" hx-push-url="true">
+    <a id="logo" href="/" hx-get="/" hx-target="#workspace" hx-push-url="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="2em" height="2em" aria-hidden="true">
         <clipPath id="flag-clip">
-            <rect x="0" y="0" width="100" height="100" />
+          <rect x="0" y="0" width="100" height="100" />
         </clipPath>
         <g clip-path="url(#flag-clip)">
-            <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
-            <polygon points="0,100 100,100 100,0" fill="#ff5722" />
+          <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+          <polygon points="0,100 100,100 100,0" fill="#ff5722" />
         </g>
       </svg>
       <h1>OEvent Helper</h1>
     </a>
+    <button id="menu-toggle" aria-label="Toggle Navigation" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="2rem" height="2rem" stroke="currentColor" stroke-width="2" fill="none">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
   </header>
 
   <nav>
@@ -32,9 +39,28 @@
       hx-push-url="true">Course Prioritizer</a>
   </nav>
 
-  <main id="workspace">
-    {{.}}
+  <main>
+    <div id="workspace">
+      {{.}}
+    </div>
   </main>
+
+  <script>
+    const toggle = document.getElementById('menu-toggle');
+    const nav = document.querySelector('nav');
+
+    toggle.addEventListener('click', () => {
+      const isOpen = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen);
+    });
+
+    nav.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  </script>
 </body>
 
 </html>
