@@ -249,7 +249,6 @@ main a:active {
             "a" auto
             "b" auto
             "c" 1fr / 1fr;
-        height: 100vh;
         overflow: hidden;
     }
 
