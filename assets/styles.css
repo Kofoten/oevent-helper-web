@@ -43,7 +43,6 @@ body {
 header {
     display: flex;
     grid-area: a;
-    padding: 0 1rem;
     color: var(--text-inverse);
     background-color: var(--header-bg);
     border-bottom: 1px solid var(--accent1);
@@ -219,6 +218,7 @@ main a:active {
 #logo {
     display: flex;
     align-items: center;
+    padding: 0 1rem;
     gap: 1rem;
     color: var(--text-inverse);
     text-decoration: none;
@@ -233,7 +233,7 @@ main a:active {
 #menu-toggle {
     display: none;
     background: transparent;
-    padding: 0.5rem;
+    padding: 0 1rem;
     border: none;
     margin-left: auto;
     outline-offset: -2px;
