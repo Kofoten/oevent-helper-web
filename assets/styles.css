@@ -33,7 +33,7 @@ body {
     display: grid;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     margin: 0;
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     grid-template:
         "a a" auto
