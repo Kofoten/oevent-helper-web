@@ -1,4 +1,6 @@
 :root {
+    color-scheme: light dark;
+
     --evergreen: #053225;
     --shadow-gray: #15111A;
     --porcelain: #FDFFFC;
@@ -27,6 +29,10 @@
         --link-visited: color-mix(in srgb, var(--accent2) 50%, var(--accent1) 50%);
         --link-active: var(--accent1);
     }
+}
+
+html {
+    scrollbar-color: var(--accent1) transparent;
 }
 
 body {
@@ -249,12 +255,12 @@ main a:active {
             "a" auto
             "b" auto
             "c" 1fr / 1fr;
-        overflow: hidden;
+        overflow-y: scroll;
     }
 
     main {
         padding: 1rem;
-        overflow-y: auto;
+        overflow-y: unset;
     }
 
     #menu-toggle {
@@ -265,7 +271,7 @@ main a:active {
         display: none;
         flex-direction: column;
         width: 100%;
-        background-color: var(--nav-bg);
+        overflow-y: unset;
     }
 
     nav.open {
