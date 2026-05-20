@@ -58,6 +58,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 
 	if urlPath == "/" {
+		w.Header().Set("Vary", "HX-Request")
+
 		if isHTMX {
 			templates.Welcome.Execute(w, nil)
 			return
@@ -97,6 +99,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Vary", "HX-Request")
+
 	if isHTMX {
 		w.Write(fragmentBytes)
 		return
@@ -116,6 +120,7 @@ func serveError(w http.ResponseWriter, isHTMX bool, code int, message string) {
 		Message: message,
 	}
 
+	w.Header().Set("Vary", "HX-Request")
 	w.WriteHeader(code)
 
 	if isHTMX {
