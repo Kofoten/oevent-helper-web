@@ -401,6 +401,10 @@
       >official repository</a
     >.
   </p>
+  <p>
+    This tool runs completely client side in your browser so that your course
+    data never leaves your computer.
+  </p>
   <p>Select an IOF 3.0 XML file to begin.</p>
   <input
     type="file"
